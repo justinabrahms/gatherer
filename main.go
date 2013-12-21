@@ -147,7 +147,7 @@ func extract(file []byte) {
 func main() {
 	flag.Parse()
 
-	if *toHash == "" || *pkgDirs == "" || *cmd == "" {
+	if *toHash == "" || *pkgDirs == "" || *cmd == "" || *bucketName == "" {
 		log.Print("You are missing one or more mandatory command line arguments.")
 		flag.Usage()
 		os.Exit(1)
