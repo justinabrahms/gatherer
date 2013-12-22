@@ -99,11 +99,6 @@ func iterWriteTar(path string, tw *tar.Writer, fi os.FileInfo) {
 	fi, err = os.Lstat(path)
 	handleErr(err)
 
-	fmt.Printf("FileInfo: %+v\n", fi)
-
-	// FileInfo gives me a FileMode which can test if ModeSymlink is active
-	// might be able to read FileInfo.Sys() for where it points?
-
 	isSym := (fi.Mode() & os.ModeSymlink) != 0
 	symPath := ""
 
@@ -112,7 +107,6 @@ func iterWriteTar(path string, tw *tar.Writer, fi os.FileInfo) {
 		handleErr(err)
 	}
 
-	// @@@ What's the string?
 	h, err := tar.FileInfoHeader(fi, symPath)
 	handleErr(err)
 
@@ -120,18 +114,12 @@ func iterWriteTar(path string, tw *tar.Writer, fi os.FileInfo) {
 	if !isSym {
 		h.Size = fi.Size()
 	}
-	fmt.Printf("Header is: %+v\n", h)
 
 	b, err := ioutil.ReadAll(file)
 	handleErr(err)
 
-	fmt.Printf("Read the whole thing. Size: %d\n", len(b))
-
 	err = tw.WriteHeader(h)
 	handleErr(err)
-
-	// _, err = io.Copy(tw, file)
-	// handleErr(err)
 
 	if !isSym {
 		_, err = tw.Write(b)
