@@ -26,6 +26,10 @@ will run your `--buildCommand` which should generate files in
 `--packageDirectories` (a comma-separated list of directories). It
 will archive these files and store them in S3 for later retrieval.
 
+**NOTE**: The gatherer binary expects you to have 2 environment
+variables with your S3 credentials: `AWS_ACCESS_KEY_ID` and
+`AWS_SECRET_ACESS_KEY`.
+
 ### Node
 
     gatherer --packageDirectories="node_modules" \
