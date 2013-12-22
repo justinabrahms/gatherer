@@ -85,18 +85,17 @@ func walk(dirPath string, tw *tar.Writer) {
 		if fi.IsDir() {
 			walk(curPath, tw)
 		} else {
-			iterWriteTar(curPath, tw, fi)
+			iterWriteTar(curPath, tw)
 		}
 	}
 }
 
-// @@@ Probably don't need to take fi here, as we have to open the file either way?
-func iterWriteTar(path string, tw *tar.Writer, fi os.FileInfo) {
+func iterWriteTar(path string, tw *tar.Writer) {
 	file, err := os.Open(path)
 	handleErr(err)
 	defer file.Close()
 
-	fi, err = os.Lstat(path)
+	fi, err := os.Lstat(path)
 	handleErr(err)
 
 	isSym := (fi.Mode() & os.ModeSymlink) != 0
