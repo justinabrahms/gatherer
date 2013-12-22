@@ -8,6 +8,14 @@ principles in mind.
 2. Easy to deploy.
 3. Easy to maintain.
 
+## Installation
+
+    curl gatherer https://drone.io/github.com/justinabrahms/gatherer/files/gatherer > gatherer
+    # or on OSX..
+    curl gatherer https://drone.io/github.com/justinabrahms/gatherer/files/gatherer_osx > gatherer
+
+    chmod +x gatherer
+
 ## Usage
 
 Gatherer works by calculating a hash from a list of files indicated by
