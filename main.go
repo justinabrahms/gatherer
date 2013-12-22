@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"io/ioutil"
 	"launchpad.net/goamz/aws"
 	"launchpad.net/goamz/s3"
 	"log"
@@ -89,22 +90,55 @@ func walk(dirPath string, tw *tar.Writer) {
 	}
 }
 
+// @@@ Probably don't need to take fi here, as we have to open the file either way?
 func iterWriteTar(path string, tw *tar.Writer, fi os.FileInfo) {
-	log.Printf("Opening file: %s\n", path)
 	file, err := os.Open(path)
 	handleErr(err)
 	defer file.Close()
 
-	h := new(tar.Header)
-	h.Name = path
-	h.Size = fi.Size()
-	h.Mode = int64(fi.Mode())
-	h.ModTime = fi.ModTime()
+	fi, err = os.Lstat(path)
+	handleErr(err)
+
+	fmt.Printf("FileInfo: %+v\n", fi)
+
+	// FileInfo gives me a FileMode which can test if ModeSymlink is active
+	// might be able to read FileInfo.Sys() for where it points?
+
+	isSym := (fi.Mode() & os.ModeSymlink) != 0
+	symPath := ""
+
+	if isSym {
+		symPath, err = os.Readlink(path)
+		handleErr(err)
+	}
+
+	// @@@ What's the string?
+	h, err := tar.FileInfoHeader(fi, symPath)
+	handleErr(err)
+
+	h.Name = file.Name() // maybe?
+	if !isSym {
+		h.Size = fi.Size()
+	}
+	fmt.Printf("Header is: %+v\n", h)
+
+	b, err := ioutil.ReadAll(file)
+	handleErr(err)
+
+	fmt.Printf("Read the whole thing. Size: %d\n", len(b))
 
 	err = tw.WriteHeader(h)
 	handleErr(err)
 
-	_, err = io.Copy(tw, file)
+	// _, err = io.Copy(tw, file)
+	// handleErr(err)
+
+	if !isSym {
+		_, err = tw.Write(b)
+		handleErr(err)
+	}
+
+	err = tw.Flush()
 	handleErr(err)
 }
 
@@ -165,12 +199,12 @@ func main() {
 
 	filename := *outfile
 	// consider bucket.GetReader to pipe directly into gunzip/untar
-	file, err := bucket.Get(fmt.Sprintf("%s/%s", checksum, filename))
+	file, err := bucket.Get(fmt.Sprintf("%s/%s2", checksum, filename))
 	if err != nil {
 		fmt.Printf("%s\n", err)
-		build(*cmd)
+		// build(*cmd)
 		archive(*pkgDirs, filename)
-		upload(bucket, checksum, filename)
+		// upload(bucket, checksum, filename)
 	} else {
 		extract(file)
 	}
