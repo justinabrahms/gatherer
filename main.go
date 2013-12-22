@@ -161,12 +161,13 @@ func extract(file []byte) {
 		dirName := path.Dir(hdr.Name)
 		os.MkdirAll(dirName, 0777)
 
-		isSym := (hdr.FileInfo().Mode() & os.ModeSymlink) != 0
+		fi := hdr.FileInfo()
+		isSym := (fi.Mode() & os.ModeSymlink) != 0
 
 		if isSym {
 			toSymlink = append(toSymlink, *hdr)
 		} else {
-			f, err := os.Create(hdr.Name)
+			f, err := os.OpenFile(hdr.Name, os.O_CREATE|os.O_WRONLY, fi.Mode())
 			handleErr(err)
 			defer f.Close()
 			io.Copy(f, tr)
