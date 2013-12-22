@@ -22,4 +22,5 @@ will archive these files and store them in S3 for later retrieval.
 
     gatherer --packageDirectories="node_modules" \
              --toHash="package.json" \
-             --buildCommand="npm install"
+             --buildCommand="npm install ." \
+             --bucketName="dependency-artifacts"
