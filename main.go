@@ -148,6 +148,7 @@ func extract(file []byte) {
 	handleErr(err)
 
 	tr := tar.NewReader(gr)
+	var toSymlink []tar.Header
 
 	for {
 		hdr, err := tr.Next()
@@ -155,13 +156,27 @@ func extract(file []byte) {
 			break // end of archive
 		}
 		handleErr(err)
+
 		// TODO(justinabrahms): Handle the case for directories.
 		dirName := path.Dir(hdr.Name)
 		os.MkdirAll(dirName, 0777)
-		f, err := os.Create(hdr.Name)
+
+		isSym := (hdr.FileInfo().Mode() & os.ModeSymlink) != 0
+
+		if isSym {
+			toSymlink = append(toSymlink, *hdr)
+		} else {
+			f, err := os.Create(hdr.Name)
+			handleErr(err)
+			defer f.Close()
+			io.Copy(f, tr)
+		}
+	}
+
+	for _, toLink := range toSymlink {
+		// TODO(justinabrahms): This might not handle absolute symlinks
+		err := os.Symlink(toLink.Linkname, toLink.Name)
 		handleErr(err)
-		defer f.Close()
-		io.Copy(f, tr)
 	}
 }
 
