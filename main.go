@@ -186,12 +186,12 @@ func main() {
 
 	filename := *outfile
 	// consider bucket.GetReader to pipe directly into gunzip/untar
-	file, err := bucket.Get(fmt.Sprintf("%s/%s2", checksum, filename))
+	file, err := bucket.Get(fmt.Sprintf("%s/%s", checksum, filename))
 	if err != nil {
 		fmt.Printf("%s\n", err)
-		// build(*cmd)
+		build(*cmd)
 		archive(*pkgDirs, filename)
-		// upload(bucket, checksum, filename)
+		upload(bucket, checksum, filename)
 	} else {
 		extract(file)
 	}
